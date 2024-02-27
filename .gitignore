@@ -9,7 +9,6 @@ notebooks/cache*
 *.gitkeep*
 
 # ML stuff
-/data
 /logs
 wandb
 .hydra
