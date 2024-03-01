@@ -27,7 +27,7 @@ eval_testset: no
 
 id: ~
 entity: ~
-project: add_thin
+project: add_thin_hyperparameter_sweep
 group: ~
 mode: ~
 name: ~
@@ -38,3 +38,8 @@ early_stopping: 20
 hydra:
   job:
       name: ${project}
+  sweeper:
+    params:
+      seed: int(9591415),int(135398),int(428227),int(206247),int(687906)
+      task.learning_rate: float(0.001),float(0.01)
+      model.mix_components: int(16),int(8)

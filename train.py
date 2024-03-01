@@ -14,7 +14,6 @@ from pytorch_lightning.callbacks import (
     TQDMProgressBar,
 )
 from pytorch_lightning.loggers import WandbLogger
-from seml.hydra import seml_observe_hydra
 
 from add_thin.config import (
     instantiate_datamodule,
@@ -81,7 +80,6 @@ log = get_logger()
 
 @hydra.main(config_path="config", config_name="train", version_base=None)
 @print_exceptions
-@seml_observe_hydra()
 def main(config: DictConfig):
     rng = set_seed(config)
     torch.use_deterministic_algorithms(True)

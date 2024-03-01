@@ -17,4 +17,5 @@ multirun
 lightning_logs
 *.pickle
 .ipynb_checkpoints/
-
+/results/*
+.python-version

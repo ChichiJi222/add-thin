@@ -58,9 +58,9 @@ The steps are the following:
     ```sh
     cd add-thin
     ```
-- (_optional_) activate the environment (everytime you'll enter the folder, the environment will be automatically activated)
+- (_optional_) activate the environment
     ```sh
-    pyenv local add_thin
+    pyenv activate add_thin
     ```
 
 #### Step 2: install the code as a local package
@@ -69,6 +69,36 @@ All the required packages are defined in the `pyproject.toml` file and can be ea
 pip install -e .
 ```
 
+## Run code
+
+Configuring experiments and running code for Add-Thin is done via hydra. If you are unfamiliar with how hydra works please check out the [documentation](https://hydra.cc/docs/intro/).
+
+### Train model on paper configs
+
+To run Add-Thin with the tuned hyperparameters for different datasets:
+```sh
+./train.py -m --config-name config_name
+```
+where ```config_name``` should be ```density_experiments_[1-4]``` or ```forecast_experiments_[1-4]```. All seeds and datasets are scheduled as a gridsearch via the multirun flag.
+
+### Train model on self-set hyperparameter
+
+To run Add-Thin with your own parameter:
+```sh
+./train.py 
+```
+where you are expected to set the parameter values either in the default configs or via command line flags.
+
+### Run hyperparameter sweep for one dataset
+
+To run a hyperparameter sweep over the learning rate and number of mixture components:
+```sh
+./train.py -m --config-name hyperparameter_sweep
+```
+
+### Evaluate metrics for trained model
+
+A trained model can be evaluated against the test-set via either [density notebook](notebooks/evaluate_density.ipynb) or [forecast notebook](notebooks/evaluate_forecast.ipynb).
 
 <!-- Python & libraries websites -->
 [python-site]: https://www.python.org
