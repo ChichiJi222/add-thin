@@ -96,6 +96,8 @@ To run a hyperparameter sweep over the learning rate and number of mixture compo
 ./train.py -m --config-name hyperparameter_sweep data.name=data_set
 ```
 
+where ```data_set``` can be each of the dataset names: ```hawkes2```, ```reddit_politics_submissions```, ```reddit_askscience_comments```, ```yelp_mississauga```, ```yelp_airport```, ```taxi```, ```nonstationary_renewal```, ```pubg```, ```twitter```, ```stationary_renewal```, ```self_correcting```, ```nonstationary_poisson```, ```hawkes1```.
+
 ### Evaluate metrics for trained model
 
 A trained model can be evaluated against the test-set via either [density notebook](notebooks/evaluate_density.ipynb) or [forecast notebook](notebooks/evaluate_forecast.ipynb).
