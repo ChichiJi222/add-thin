@@ -93,7 +93,7 @@ where you are expected to set the parameter values either in the default configs
 
 To run a hyperparameter sweep over the learning rate and number of mixture components:
 ```sh
-./train.py -m --config-name hyperparameter_sweep
+./train.py -m --config-name hyperparameter_sweep data.name=data_set
 ```
 
 ### Evaluate metrics for trained model
