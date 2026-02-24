@@ -31,6 +31,7 @@ class DiffusionModell(nn.Module):
         self.steps = steps
 
         # Cosine beta schedule
+        # [Comment]: DDPM scheduler
         beta = betas_for_alpha_bar(
             steps,
             lambda n: math.cos((n + 0.008) / 1.008 * math.pi / 2) ** 2,
@@ -44,13 +45,15 @@ class DiffusionModell(nn.Module):
 
         # Compute thinning probabilities for posterior and shift it to be indexed with n-1
         add_remove = (1 - self.alpha_cumprod)[:-1] * beta[1:]
+        # [Comment]: The noise fraction at step n-1 will be thinned. -> calculate
         alpha_x0_kept = (self.alpha_cumprod[:-1] - self.alpha_cumprod[1:]) / (
             1 - self.alpha_cumprod[1:]
         )
+        # [Comment]: a point in t^{A\cup C} actually belongs to C
         alpha_xn_kept = (
             (self.alpha - self.alpha_cumprod) / (1 - self.alpha_cumprod)
         )[1:]
-
+        # [Comment]: points that added at step n-1 and kept at step n
         self.register_buffer("alpha_x0_kept", alpha_x0_kept)
         self.register_buffer("alpha_xn_kept", alpha_xn_kept)
         self.register_buffer("add_remove", add_remove)
@@ -199,12 +202,17 @@ class AddThin(DiffusionModell):
         ).reshape(B, L, -1)
 
         # Compute history embedding
-        embedding = self.history_encoder(time_emb)[0]
-
+        embedding = self.history_encoder(time_emb)[0] #(B, L, H)
+        # [Comments]: history_encoder is the GRU hidden state
         # Index relative to time and set history
         index = (batch.mask.sum(-1).long() - 1).unsqueeze(-1).unsqueeze(-1)
+        # [Comments]: index, pick the last real event position in each sequence (B, 1, 1)
+        # [Comments]: sum(-1), sum over the last dimension. 
+        # [Comments]: For a tensor with shape (a,b,c), unsqueeze(-1) makes it (a,b,c,1).
         gather_index = index.repeat(1, 1, embedding.shape[-1])
+        # [Comments]: change the dim into (B, 1 ,H)
         self.history = embedding.gather(1, gather_index).squeeze(-2)
+        # [Comments]: GRU hidden state at the last real event for each sequence
 
     def compute_emb(
         self, n: TensorType[torch.long, "batch"], x_n: Batch
@@ -247,6 +255,7 @@ class AddThin(DiffusionModell):
         time_emb = self.time_encoder(
             torch.cat([x_n.time.unsqueeze(-1), x_n.tau.unsqueeze(-1)], dim=-1)
         ).reshape(B, L, -1)
+        # x_n.time is the event time, x_n.tau is the inter-event interval \tau_i = t_i - t_{i-1}
 
         # Embed event sequence and mask out
         event_emb = self.sequence_encoder(time_emb)
@@ -306,6 +315,8 @@ class AddThin(DiffusionModell):
         -------
         Tuple[Batch, Batch]
             x_n and thinned x_0
+
+        # [Comments]: x_0 -> x_T in one call, does not include the full trojectory but only the end points.
         """
         # Thin x_0
         x_0_kept, x_0_thinned = x_0.thin(alpha=self.alpha_cumprod[n])
@@ -317,7 +328,7 @@ class AddThin(DiffusionModell):
             intensity=1 - self.alpha_cumprod[n],
         )
         x_n = x_0_kept.add_events(hpp)
-
+        # [Comments]: x_0_thinned is the part of x_0 excludes x_0 \cap x_n
         return x_n, x_0_thinned
 
     def forward(

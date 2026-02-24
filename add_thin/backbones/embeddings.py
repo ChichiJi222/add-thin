@@ -37,6 +37,8 @@ class NyquistFrequencyEmbedding(nn.Module):
 
         T = timesteps
         k = dim // 2
+        # [Comments]: 'dim' counts ouput channels, but each frequency uses 2 channels.
+
 
         # Nyquist frequency for T samples per cycle
         nyquist_frequency = T / 2
@@ -48,8 +50,10 @@ class NyquistFrequencyEmbedding(nn.Module):
 
         # Sample every frequency twice, once shifted by pi/2 to get cosine
         scale = np.repeat(2 * np.pi * frequencies / timesteps, 2)
-        bias = np.tile(np.array([0, np.pi / 2]), k)
+        # [Comments]: The output is [w_1, w_1, w_2, w_2, ..., w_k, w_k]. -> fro each frequancy, [sin w_j t, cos w_j t].
 
+        bias = np.tile(np.array([0, np.pi / 2]), k)
+        # [Comments]: cos = sin (x + pi/2). 
         self.register_buffer(
             "scale",
             torch.from_numpy(scale.astype(np.float32)),
@@ -58,6 +62,7 @@ class NyquistFrequencyEmbedding(nn.Module):
         self.register_buffer(
             "bias", torch.from_numpy(bias.astype(np.float32)), persistent=False
         )
-
+        # [Comments]: persistent = Flase -> not saved in checkpoints
     def forward(self, t) -> torch.Tensor:
         return torch.addcmul(self.bias, self.scale, t[..., None]).sin()
+        # [Comments]: torch.addcmul(input, tensor1, tensor2)  # -> input + tensor1 * tensor2

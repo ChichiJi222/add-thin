@@ -36,6 +36,7 @@ class CNNSeqEmb(nn.Module):
         super().__init__()
         # TODO: Change dilation values or make them configurable
         dilation = [1, 4, 8, 16, 32, 64]
+        # [Comments]: uses positions spaced by d: x[i], x[i+d], x[i + 2d], x[i + (K-1)d].
 
         # Instantiate CNN layers
         layers = []
@@ -47,16 +48,18 @@ class CNNSeqEmb(nn.Module):
                         nn.Conv1d(
                             input_dim,
                             emb_dims,
-                            kernel_size,
-                            padding="same",
-                            padding_mode="circular",
+                            kernel_size, # How many positions the filter uses
+                            padding="same", # Out_put size remains the same 16 here
+                            padding_mode="circular", 
                             dilation=dilation[i],
                         ),
                         nn.GroupNorm(8, emb_dims),
+                        # [Comments]: often choice in diffusion, training is stable with small batches.
                     ]
                 )
             )
-        self.activation = nn.ReLU(inplace=True)
+        self.activation = nn.ReLU(inplace=True) 
+        # [Comments]: inplace = T, PyTorch modifies the input tensor itself and reuses the same memory.
         self.linear = nn.Linear(emb_dims, emb_dims)
         self.layers = torch.nn.ModuleList(layers)
 
